@@ -1,0 +1,37 @@
+- Step0: Train DLC models
+  - Details of our case see STAR Methods section of the manuscript
+  - Examples of tracking fidelity were shown in a video in the folder
+- Step1: After pose tracking, go through videos with identity labeled and correct identity swaps
+  - reasonable number of swaps in our experience: less than 1 per minute (60fps recording)
+    - if too many identity swaps, double check parameter settings & DLC model
+    - customized scripts were used to correct identity swaps in the manuscript
+    - note: DLC now includes module for identity correction
+  - double check if corret all M-F swaps based on abdomen lengths
+    - With high-resolution videos + healthy flies, should be able to tell the male and female apart based on abdomen length. i.e. female abdomen longer than male.
+    - related script: plot abdomen length for identity swap check
+      - DLC_MMF_para_abd.ipynb 
+        - MF assays can be done in a similar way
+- Step2: parameter computation after pose-tracking
+  - Step2-0: data organization (one assay/folder, all folders for assays to process under the same parent folder)
+    - required file for each assay: .h5 file after identity swaps correction
+  - Step2-1: convert pose positions to animal and inter-animal features
+    - Input: .h5 files
+    - Script:
+      - prepareForJAABA_MMF.ipynb
+        - MF assays can be done in a similar way
+    - Output: .csv files for each individuals in the assay
+  - Step2-2:  convert those features to JAABA input format
+    - Input: .csv files for each individuals in the assay
+    - Script:
+      - DLCwrite_JAABA_MMF.m
+        - MF assays can be done in a similar way
+    - Output: trx.mat and perframe folder for JAABA project
+- Step3: JAABA classification and quick plots after classification
+  - JAABA setup and train JAABA classifiers
+    - related info in folder JAABAsetup
+    - JAABA detect to get score files 
+    - Organize useful information into a MATLAB structure file
+    - Related Script:
+      - JAABA_detect_and_data_organization.m
+- Step4: customized analysis
+  - Examples see CrossCov and tSNE analysis

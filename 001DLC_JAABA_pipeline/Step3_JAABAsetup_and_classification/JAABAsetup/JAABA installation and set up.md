@@ -1,0 +1,15 @@
+- Installation
+	- git clone https://github.com/kristinbranson/JAABA.git
+- Set up
+	- addpath(genpath('/Users/rufeili/Documents/MATLAB/JAABA'));
+	- files that need to be changed (Go to "JAABA/perframe/params")
+		- perframe/params/featureConfigList.xml
+			- add new config file info in the Config list if adding new featureConfig files
+		- Configfiles
+			- edit from existing ones 
+			  - i.e. in our case: modified "featureConfigWings.xml"
+			    - add "<abdlen_mm trans_types="none,abs" type="appearance"/>"
+			- or create new ones using the same structure as the listed ones
+			  - if creating new ones, don't forget to add it to the featureConfigList.xml
+- Useful notes for JAABA
+	- loading the projects jab file into matlab using matlab's load command. Exploring the content of the jab file will give you a good idea of how the labels are stored and how they can be manipulated.
