@@ -1,5 +1,5 @@
 # HindmarshSten_Li_etal_2024
-Customized analysis scripts and representative datasets for testing related to manuscript Hindmarsh Sten, Li, et al. 2024.
+Customized analysis scripts and representative datasets for testing scripts related to manuscript Hindmarsh Sten, Li, et al. 2024.
 Related detailed description see STAR Methods section of the manuscript.
 
 # Content
@@ -13,7 +13,7 @@ Cross covariance analyses between behaviors or features of individual animals du
 Convert sptail configuration between all three individuals in MMF triads to tSNE space, related to **Figures 3A-C, S2A-E,S6Q-R**.
 
 ## 004SongAnalysis
-Characterize acoustic features of natural pulse and agonistic song recorded from MMF assays with one winged and one wingless males, related to **Figures 4B, 4G**.
+Characterize acoustic features of natural courtship pulse and agonistic song recorded from MMF assays with one winged and one wingless males, related to **Figures 4B, 4G**.
 
 ## 005SongClassification
 Customized classification of courtship song from MF and MMF recordings based on frequency content, related to **Figures 4L-M, 6A, S4K-P**.
