@@ -1,5 +1,5 @@
 # HindmarshSten_Li_etal_2024
-Customized analysis scripts and representative datasets for testing related to manuscript Hindmarsh Sten, Li, et al. 2024.
+Customized analysis scripts and representative datasets for testing scripts related to manuscript Hindmarsh Sten, Li, et al. 2024.
 Related detailed description see STAR Methods section of the manuscript.
 
 # Content
