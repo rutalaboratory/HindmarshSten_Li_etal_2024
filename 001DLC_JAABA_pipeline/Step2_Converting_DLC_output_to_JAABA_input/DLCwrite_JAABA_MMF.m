@@ -27,12 +27,11 @@
 %
 % Last updated on 2024-12-09 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%%
 parent = '/Users/rufeili/Documents/Test/Example_MMF';
 
 children = dir(parent);
 children = children([children.isdir] & ~ismember({children.name}, {'.', '..'}));
-
 
 cd(parent)
 for j = 1:length(children)
