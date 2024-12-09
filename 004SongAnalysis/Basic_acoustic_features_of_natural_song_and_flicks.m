@@ -26,9 +26,11 @@
 % song bout, relative amplitude comparison between agonistic and courtship
 % pulse song
 %
+%
 % Dependencies: 
 % Function to get carrier frequency (getPulseFreq.m) from 
 % Clemens, Coen, Roemscheid, et al. Current Biology. 2018
+% Customized function to calculate distribution: dist.m
 %
 % Last updated on 2024-12-08 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
