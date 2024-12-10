@@ -32,12 +32,12 @@
 % Clemens, Coen, Roemscheid, et al. Current Biology. 2018
 % Customized function to calculate distribution: dist.m
 %
-% Last updated on 2024-12-08 
+% Last updated on 2024-12-09 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% compute IPI, pulse train bout length, carrier frequency, and amplitude
-load('Example_natural_song_flicks.mat');
-Allfiles = Example_natural_song_flicks;
+%load('Example_natural_song_flicks.mat');
 
+Allfiles = Allfiles_compete;
 clearvars -except Allfiles
 
 Ctr = 0;
@@ -82,15 +82,24 @@ for i = 1:length(Allfiles)
     for k = 1:2 %k = 1 for flicking & k = 2 for singing
         if k == 1;
             pulse_time = flickTimes; 
+            beh_bout = Allfiles(i).Flicks_beh_bouts;
         else
             pulse_time = songTimes;
+            beh_bout = Allfiles(i).UWE_beh_bouts;
         end
 
         threshold = 0.5; % unit: second
+
         % when pulses are more than 0.5 second apart, they won't be considered as
         % in the same pulse train
     
         % compute IPI based on manually labeled pulse event
+        % note: could also use manually labeled behavioral epochs to define
+        % pulse train, sometimes, unilateral wing extension epochs may
+        % include multiple pulse trains, so still used pulse event to
+        % separate trains (lead to similiar results, code commented out below); 
+        % also, in this way, the analysis could be consistent with R85A12 activation
+        % agonistic song analysis, where we did not label behavioral epochs
         delta = diff(pulse_time);
         indx_pulse = zeros(1,length(pulse_time));
         % select pulses that are not at the start or end of a pulse train
@@ -100,6 +109,7 @@ for i = 1:length(Allfiles)
                 indx_pulse(j) = 1;
             end
         end
+
         % IPI
         indx_delta = zeros(1,length(delta));
         indx_delta(find(indx_pulse==1)) = 1;
@@ -114,47 +124,78 @@ for i = 1:length(Allfiles)
         train_end = [indices; length(pulse_time)];
         bout_length = train_end - train_start + 1;
         bout_length_mean = mean(bout_length);
+        
+
+        %{
+        IPI_ind = [];
+        bout_length = [];
+        for b = 1:length(beh_bout(:,1))
+            bout_start = beh_bout(b,1);
+            bout_end = beh_bout(b,2);
+            pulse_time_indices = find(pulse_time >= bout_start & ...
+                pulse_time <= bout_end);
+
+            bout_length(b)=length(pulse_time_indices);
+
+            pulse_time_in_train = pulse_time(pulse_time_indices);
+            IPI_bout = diff(pulse_time_in_train);
+            IPI_ind = [IPI_ind; IPI_bout];
+        end
+        bout_length_mean = mean(bout_length);
+        %}
 
         % refine pulse region for carrier frequency and amplitude calculation
         ind_pulse_Ctr = 0;
-        Fpeak_ind = [];
+        ind_pulse = [];
         amplitude_norm = [];
         for n = 1:length(pulse_time)
-            %get a window that includes the pulse, but none before it
             %traditional pulse half width to be considered: 0.015 sec
-            timeRange = [pulse_time(n)-0.015 pulse_time(n)+0.25];
+            timeRange = [pulse_time(n)-0.015 pulse_time(n)+0.015];
             idxRange = find(t>timeRange(1)&t<timeRange(end));
             subsound = y(idxRange);
 
-            %compute envelope
-            [ub,lb] = envelope(subsound,30,'peak');
+            %compute envelope to extract peak and troughs for pulses
+            [ub,lb] = envelope(subsound,5,'peak'); 
 
-            %find first envelope peak, which indicate the pulse location, 
-            % and thentrace troughs
-            [~,center] = findpeaks(ub,'NPeaks',1,'MinPeakProminence',0.05);
+            %find the envelope peak with max value in this region, 
+            % which indicate the pulse location, and then trace troughs
+            [~,peak_all] = findpeaks(ub,'MinPeakProminence',0.03);
+            if ~isempty(peak_all)
+                [~, sorted_indx] = sort(ub(peak_all));
+                center = peak_all(sorted_indx(end));
+            end
+            % locate troughs
             lms = find(islocalmin(ub));
 
-            if ~isempty(center) && any(lms<center) && any(lms>center) % make sure peaks are detected
+            if ~isempty(center) && any(lms<center) && any(lms>center) 
                 troughs(1) = lms(find(lms<center,1));
                 troughs(2) = lms(find(lms>center,1));
-                if (troughs(2)-troughs(1)) < 250 % make sure pulse length is reasonable
-                    actual_pulse = subsound(troughs(1):troughs(2));
-                    ind_pulse_Ctr = ind_pulse_Ctr + 1;
-    
-                    % get carrier frequency of individual pulses 
-                    % function from Clemens, Coen, Roemscheid, et al. Current Biology. 2018
-                    [Fpeak, amp, F] = getPulseFreq(actual_pulse,Fs);  
-                    Fpeak_ind(ind_pulse_Ctr) = Fpeak;
-                    
-                    % amplitude
-                    amplitude_norm(ind_pulse_Ctr) = ub(center);
-                    % note: each acoustic recording is normalized based on the
-                    % max amplitude in that recording in the pre-processing
-                    % step, so we only compare amplitudes within an recording
-                    % instead of across recordings
-                end
+               
+                actual_pulse = subsound(troughs(1):troughs(2));
+                ind_pulse_Ctr = ind_pulse_Ctr + 1;
+
+                % fill the empty array with 0 to align pulses in a matrix
+                % note additional 0 in an array won't affect carrier
+                % frquency analysis
+                empty_pre = 300-(center-troughs(1));
+                empty_post = 300-(troughs(2)-center);
+                ind_pulse(:,ind_pulse_Ctr) = ...
+                    [zeros(empty_pre,1);actual_pulse;zeros(empty_post,1)];
+                
+                % amplitude
+                amplitude_norm(ind_pulse_Ctr) = ub(center);
+                % note: each acoustic recording is normalized based on the
+                % max amplitude in that recording in the pre-processing
+                % step, so we only compare amplitudes within an recording
+                % instead of across recordings
+               
             end
         end
+
+        % get carrier frequency of all sing/flick pulses in an assay
+        % function from Clemens, Coen, Roemscheid, et al. Current Biology.
+        % 2018
+        [Fpeak_ind,amp,F]=getPulseFreq(ind_pulse,Fs);
 
         % save output
         if k == 1
@@ -170,6 +211,7 @@ for i = 1:length(Allfiles)
             flick_Fpeak_median(Ctr) = median(Fpeak_ind);
             % normalized flick amplitude in this recording
             flick_amp = median(amplitude_norm);
+          
         else
             % IPI distribution of song pulses in each recording
             sing_IPI_prob(Ctr,:) = dist(IPI_ind,IPI_bin,IPI_min,IPI_max);
@@ -183,6 +225,7 @@ for i = 1:length(Allfiles)
             sing_Fpeak_median(Ctr) = median(Fpeak_ind);
             % normalized song amplitude in this recording
             sing_amp = median(amplitude_norm);
+
         end
     end
     % amplitude comparison between flick and song pulses in eachrecording
@@ -243,4 +286,3 @@ fill([x,fliplr(x)],[mean_data+standard_error,fliplr(mean_data-standard_error)],.
 
 
 clear x mean_data standar_error 
-
